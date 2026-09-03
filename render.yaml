@@ -8,10 +8,15 @@ services:
       - key: SECRET_KEY
         generateValue: true
       - key: LIFELINK_DATABASE
-        value: /data/login_auth.db
+        value: /app/database/login_auth.db
       - key: COOKIE_SECURE
         value: "1"
-    disk:
-      name: lifelink-data
-      mountPath: /data
-      sizeGB: 1
+    # Free-plan note: the SQLite database lives in the container filesystem,
+    # so it resets when the service is redeployed. To keep data across
+    # redeploys, switch plan to "starter" and use a persistent disk instead:
+    #   plan: starter
+    #   disk:
+    #     name: lifelink-data
+    #     mountPath: /data
+    #     sizeGB: 1
+    # ...and set LIFELINK_DATABASE to /data/login_auth.db

@@ -56,13 +56,13 @@ The build bundles templates, static files, and schema SQL — never your local d
 The repository includes `Dockerfile` and `render.yaml`.
 
 1. Put this project in a GitHub repository. Do not commit secrets or private database data.
-2. Create a Render account and choose **New → Blueprint**.
-3. Select the repository and deploy the included `render.yaml`.
+2. Create a Render account and choose **New → Blueprint** (not "Web Service").
+3. Select the repository and the `main` branch, then deploy the included `render.yaml`.
 4. Render builds the Docker image and assigns an HTTPS URL such as `https://lifelink-ai.onrender.com`.
-5. The generated `SECRET_KEY` and persistent `/data` disk are configured by `render.yaml`.
+5. The generated `SECRET_KEY` is configured by `render.yaml`.
 6. Share the HTTPS URL with users.
 
-The persistent disk is important because the app currently uses SQLite. SQLite is suitable for a demo or low-volume deployment. For many concurrent users, move persistence to PostgreSQL and add production controls such as CSRF protection, rate limiting, verified donor identity, consent records, audit logs, backups, and clinical review.
+Free-plan caveats: the service sleeps after ~15 minutes of inactivity (the first request after sleep takes about a minute to wake), and the SQLite database lives inside the container, so it resets when the service is redeployed. For data that survives redeploys, switch the service to a paid plan and attach a persistent disk — the commented block in `render.yaml` shows the exact settings. For many concurrent users, move persistence to PostgreSQL and add production controls such as rate limiting, verified donor identity, consent records, audit logs, backups, and clinical review.
 
 Manual Render settings, if you do not use Blueprint:
 
@@ -70,9 +70,7 @@ Manual Render settings, if you do not use Blueprint:
 - Build: handled by Dockerfile
 - Start: handled by Dockerfile
 - Health check path: `/`
-- Environment variable: `SECRET_KEY` with a long random value
-- Persistent disk mounted at `/data`
-- `LIFELINK_DATABASE=/data/login_auth.db`
+- Environment variables: `SECRET_KEY` (long random value), `COOKIE_SECURE=1`, and `LIFELINK_DATABASE` (defaults to `/app/database/login_auth.db`; use `/data/login_auth.db` if you attach a disk at `/data`)
 
 ## Alternative cloud hosts
 
