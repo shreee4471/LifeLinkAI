@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Give hope{% endblock %}
+{% block content %}
+<section class="hero card mb-4">
+    <div class="card-body hero-content py-5 py-lg-6">
+        <div class="row align-items-center g-4">
+            <div class="col-lg-8">
+                <div class="eyebrow mb-3"><i class="bi bi-heart-pulse me-1" aria-hidden="true"></i>Community-powered care</div>
+                <h1 class="mb-4">Every drop can keep a heart beating.</h1>
+                <p class="lead text-muted mb-4">LifeLink AI brings people who need blood together with donors who can help — quickly, safely, and close to home.</p>
+                <div class="d-flex flex-wrap gap-2"><a href="/register" class="btn btn-danger btn-lg"><i class="bi bi-arrow-right me-2" aria-hidden="true"></i>Join the lifeline</a><a href="/login" class="btn btn-outline-dark btn-lg">Sign in</a></div>
+            </div>
+            <div class="col-lg-4 d-none d-lg-block text-center"><i class="bi bi-droplet-half text-danger" style="font-size: 10rem; opacity:.8" aria-hidden="true"></i></div>
+        </div>
+    </div>
+</section>
+<section class="row g-3 mb-4" aria-label="How LifeLink helps">
+    <div class="col-md-4"><div class="stat-card"><i class="bi bi-broadcast mb-2 d-block" aria-hidden="true"></i><h2 class="h5">See urgent needs</h2><p class="text-muted mb-0">Find active blood requests in your city.</p></div></div>
+    <div class="col-md-4"><div class="stat-card"><i class="bi bi-people mb-2 d-block" aria-hidden="true"></i><h2 class="h5">Become a donor</h2><p class="text-muted mb-0">Share your availability when you can help.</p></div></div>
+    <div class="col-md-4"><div class="stat-card"><i class="bi bi-shield-check mb-2 d-block" aria-hidden="true"></i><h2 class="h5">Match with purpose</h2><p class="text-muted mb-0">Smart matches connect compatible donors.</p></div></div>
+</section>
+{% endblock %}

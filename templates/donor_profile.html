@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+
+{% block title %}
+{{ form_title }}
+{% endblock %}
+
+{% block content %}
+
+<div class="card shadow">
+
+    <div class="card-body">
+
+        <h2 class="mb-4">
+            {{ form_title }}
+        </h2>
+
+        <form method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            <div class="mb-3">
+                <label class="form-label">
+                    Full Name
+                </label>
+
+                <input
+                    type="text"
+                    name="full_name"
+                    class="form-control"
+                    value="{{ donor.full_name if donor else '' }}"
+                    required
+                >
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">
+                    Blood Group
+                </label>
+
+                <select
+                    name="blood_group"
+                    class="form-select"
+                    required
+                >
+                    <option value="">Select</option>
+
+                    {% for group in ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"] %}
+                        <option
+                            value="{{ group }}"
+                            {% if donor and donor.blood_group == group %}selected{% endif %}
+                        >
+                            {{ group }}
+                        </option>
+                    {% endfor %}
+
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">
+                    City
+                </label>
+
+                <input
+                    type="text"
+                    name="city"
+                    class="form-control"
+                    value="{{ donor.city if donor else '' }}"
+                    required
+                >
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">
+                    Phone Number
+                </label>
+
+                <input
+                    type="text"
+                    name="phone"
+                    class="form-control"
+                    value="{{ donor.phone if donor else '' }}"
+                    required
+                >
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">
+                    Age
+                </label>
+
+                <input
+                    type="number"
+                    name="age"
+                    class="form-control"
+                    value="{{ donor.age if donor else '' }}"
+                    min="18"
+                    max="65"
+                    required
+                >
+            </div>
+
+            <button
+                type="submit"
+                class="btn btn-success"
+            >
+                {{ action_label }}
+            </button>
+
+            <a
+                href="{{ url_for('dashboard.dashboard') }}"
+                class="btn btn-outline-secondary"
+            >
+                Cancel
+            </a>
+
+        </form>
+
+    </div>
+
+</div>
+
+{% endblock %}

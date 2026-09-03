@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: lifelink-ai
+    runtime: docker
+    plan: free
+    healthCheckPath: /
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: LIFELINK_DATABASE
+        value: /data/login_auth.db
+      - key: COOKIE_SECURE
+        value: "1"
+    disk:
+      name: lifelink-data
+      mountPath: /data
+      sizeGB: 1

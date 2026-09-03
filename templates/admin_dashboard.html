@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+{% block title %}Admin{% endblock %}
+{% block content %}
+<div class="page-heading mb-4"><div class="eyebrow">Operations</div><h1 class="h2 fw-bold mb-1">Admin dashboard</h1><p class="text-muted mb-0">Verify donors, approve hospital requests, and manage the ranking model.</p></div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-4"><div class="stat-card"><i class="bi bi-person-check d-block mb-2" aria-hidden="true"></i><div class="stat-value">{{ pending_donors|length }}</div><div class="text-muted small">Donors pending verification</div></div></div>
+    <div class="col-md-4"><div class="stat-card"><i class="bi bi-hospital d-block mb-2" aria-hidden="true"></i><div class="stat-value">{{ pending_requests|length }}</div><div class="text-muted small">Requests pending review</div></div></div>
+    <div class="col-md-4"><div class="stat-card"><i class="bi bi-cpu d-block mb-2" aria-hidden="true"></i><div class="stat-value">{{ labeled_count }}</div><div class="text-muted small">Labeled outcomes ({{ 10 - labeled_count if labeled_count < 10 else 0 }} more to train)</div></div></div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-3">
+            <div>
+                <h2 class="h4 mb-1">Ranking model</h2>
+                <p class="text-muted mb-0 small">Logistic ranking refit from labeled match outcomes. The deterministic blood-compatibility gate always applies before any scoring.</p>
+            </div>
+            <form method="POST" action="{{ url_for('match.retrain') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button type="submit" class="btn btn-outline-primary"><i class="bi bi-arrow-repeat me-1" aria-hidden="true"></i>Retrain now</button></form>
+        </div>
+        {% if model_state %}
+        <div class="row g-3">
+            <div class="col-sm-4"><div class="detail-item"><div class="detail-label">Version</div><div>{{ model_state.version }}</div></div></div>
+            <div class="col-sm-4"><div class="detail-item"><div class="detail-label">Labeled outcomes</div><div>{{ model_state.labeled_outcomes }}</div></div></div>
+            <div class="col-sm-4"><div class="detail-item"><div class="detail-label">Last trained</div><div>{{ model_state.trained_at }}</div></div></div>
+        </div>
+        {% else %}
+        <p class="text-muted mb-0">No trained model yet — the domain-informed prior is in use until {{ 10 }} labeled outcomes exist.</p>
+        {% endif %}
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-body p-0">
+        <div class="p-3 border-bottom"><h2 class="h5 mb-0">Donors pending verification</h2></div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead><tr><th>Donor</th><th>Blood group</th><th>City</th><th>Age</th><th>Phone</th><th>Registered</th><th class="text-end">Actions</th></tr></thead>
+                <tbody>
+                {% if pending_donors %}
+                    {% for donor in pending_donors %}
+                    <tr>
+                        <td><strong>{{ donor.full_name }}</strong></td>
+                        <td class="text-danger fw-bold">{{ donor.blood_group }}</td>
+                        <td>{{ donor.city }}</td>
+                        <td>{{ donor.age }}</td>
+                        <td>{{ donor.phone }}</td>
+                        <td>{{ donor.created_at }}</td>
+                        <td class="text-end">
+                            <div class="d-flex gap-2 justify-content-end">
+                                <form method="POST" action="{{ url_for('admin.verify_donor', donor_id=donor.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="decision" value="approve"><button type="submit" class="btn btn-sm btn-success">Approve</button></form>
+                                <form method="POST" action="{{ url_for('admin.verify_donor', donor_id=donor.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="decision" value="reject"><button type="submit" class="btn btn-sm btn-outline-danger">Reject</button></form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr><td colspan="7" class="text-center text-muted py-4">No donors pending verification.</td></tr>
+                {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-body p-0">
+        <div class="p-3 border-bottom"><h2 class="h5 mb-0">Requests pending hospital review</h2></div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead><tr><th>Blood group</th><th>City</th><th>Hospital</th><th>Units</th><th>Urgency</th><th>Requested by</th><th>Created</th><th class="text-end">Actions</th></tr></thead>
+                <tbody>
+                {% if pending_requests %}
+                    {% for blood_request in pending_requests %}
+                    <tr>
+                        <td class="text-danger fw-bold">{{ blood_request.blood_group_needed }}</td>
+                        <td>{{ blood_request.city }}</td>
+                        <td>{{ blood_request.hospital_name }}</td>
+                        <td>{{ blood_request.units_required }}</td>
+                        <td><span class="badge text-bg-danger">{{ blood_request.urgency }}</span></td>
+                        <td>{{ blood_request.requester_name }}</td>
+                        <td>{{ blood_request.created_at }}</td>
+                        <td class="text-end"><form method="POST" action="{{ url_for('admin.verify_request', request_id=blood_request.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button type="submit" class="btn btn-sm btn-success">Approve</button></form></td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr><td colspan="8" class="text-center text-muted py-4">No requests pending review.</td></tr>
+                {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% if is_admin %}
+<div class="card">
+    <div class="card-body p-0">
+        <div class="p-3 border-bottom"><h2 class="h5 mb-0">Users &amp; roles</h2></div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead><tr><th>User</th><th>Email</th><th>Email verified</th><th>Current role</th><th>Created</th><th class="text-end">Change role</th></tr></thead>
+                <tbody>
+                {% for user in users %}
+                    <tr>
+                        <td><strong>{{ user.username }}</strong></td>
+                        <td>{{ user.email }}</td>
+                        <td>{% if user.email_verified_at %}<span class="badge text-bg-success">Verified</span>{% else %}<span class="badge text-bg-secondary">Pending</span>{% endif %}</td>
+                        <td><span class="badge text-bg-light text-dark">{{ user.role }}</span></td>
+                        <td>{{ user.created_at }}</td>
+                        <td class="text-end">
+                            <div class="d-flex gap-2 justify-content-end">
+                            {% for role in ['user', 'hospital_reviewer', 'admin'] %}
+                                {% if role != user.role %}
+                                <form method="POST" action="{{ url_for('admin.change_user_role', user_id=user.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="role" value="{{ role }}"><button type="submit" class="btn btn-sm btn-outline-primary" {{ 'disabled' if user.id == session.get('user_id') and role != 'admin' }}>Make {{ role.replace('_', ' ') }}</button></form>
+                                {% endif %}
+                            {% endfor %}
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

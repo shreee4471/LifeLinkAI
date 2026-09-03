@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+
+{% block title %}
+Donor Dashboard
+{% endblock %}
+
+{% block content %}
+
+<div class="card shadow">
+
+    <div class="card-body">
+
+        <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-4">
+
+            <div>
+                <h2 class="mb-1">
+                    Donor Dashboard
+                </h2>
+
+                <p class="text-muted mb-0">
+                    Manage your donor profile and response availability.
+                </p>
+            </div>
+
+            <span
+                class="badge fs-6 {{ 'text-bg-success' if donor.availability == 'Available' else 'text-bg-secondary' }}"
+            >
+                {{ donor.availability }}
+            </span>
+
+        </div>
+
+        <div class="row g-3 mb-4">
+
+            <div class="col-md-6">
+                <strong>Full Name</strong>
+                <p class="mb-0">{{ donor.full_name }}</p>
+            </div>
+
+            <div class="col-md-6">
+                <strong>Blood Group</strong>
+                <p class="mb-0">{{ donor.blood_group }}</p>
+            </div>
+
+            <div class="col-md-6">
+                <strong>City</strong>
+                <p class="mb-0">{{ donor.city }}</p>
+            </div>
+
+            <div class="col-md-6">
+                <strong>Phone</strong>
+                <p class="mb-0">{{ donor.phone }}</p>
+            </div>
+
+            <div class="col-md-6">
+                <strong>Age</strong>
+                <p class="mb-0">{{ donor.age }}</p>
+            </div>
+
+            <div class="col-md-6">
+                <strong>Registered On</strong>
+                <p class="mb-0">{{ donor.created_at }}</p>
+            </div>
+
+            <div class="col-md-6">
+                <strong>Last Donation</strong>
+                <p class="mb-0">
+                    {% if donor.last_donation_at %}
+                        {{ donor.last_donation_at }}
+                        {% if donor.days_since_donation is defined and donor.days_since_donation < 56 %}
+                            <span class="badge text-bg-warning ms-1">In {{ 56 - donor.days_since_donation }}-day cooldown</span>
+                        {% else %}
+                            <span class="badge text-bg-success ms-1">Eligible</span>
+                        {% endif %}
+                    {% else %}
+                        No donation recorded
+                    {% endif %}
+                </p>
+            </div>
+
+        </div>
+
+        {% if donor.last_donation_at and donor.days_since_donation is defined and donor.days_since_donation < 56 %}
+        <div class="alert alert-warning d-flex gap-2 align-items-start" role="alert">
+            <i class="bi bi-hourglass-split mt-1" aria-hidden="true"></i>
+            <div class="small mb-0">Whole-blood donors wait 56 days between donations. You are {{ 56 - donor.days_since_donation }} day(s) into the cooldown and will not appear in matches until it ends.</div>
+        </div>
+        {% endif %}
+
+        <div class="d-flex flex-wrap gap-2">
+
+            <a
+                href="{{ url_for('donor.edit_donor') }}"
+                class="btn btn-primary"
+            >
+                Edit Profile
+            </a>
+
+            <form
+                method="POST"
+                action="{{ url_for('donor.toggle_availability') }}"
+            >
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button
+                    type="submit"
+                    class="btn btn-outline-success"
+                >
+                    Mark {{ "Unavailable" if donor.availability == "Available" else "Available" }}
+                </button>
+            </form>
+
+            <form
+                method="POST"
+                action="{{ url_for('donor.log_donation') }}"
+            >
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button
+                    type="submit"
+                    class="btn btn-outline-danger"
+                >
+                    <i class="bi bi-droplet me-1" aria-hidden="true"></i>Log a donation
+                </button>
+            </form>
+
+            <a
+                href="{{ url_for('dashboard.dashboard') }}"
+                class="btn btn-outline-secondary"
+            >
+                Back to Dashboard
+            </a>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}
